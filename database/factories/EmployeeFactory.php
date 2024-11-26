@@ -24,8 +24,8 @@ class EmployeeFactory extends Factory
             'age' => $this->faker->numberBetween(17, 55),
             'phone' => $this->faker->phoneNumber(),
             'photo'=> $this->faker->imageUrl(),
-            'team_id' => $this->faker->numberBetween(1, 10),
-            'role_id' => $this->faker->numberBetween(1, 51), 
+            'team_id' => $this->faker->numberBetween(1, 30),
+            'role_id' => $this->faker->numberBetween(1, 50), 
         ];
         
     }
