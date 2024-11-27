@@ -6,6 +6,7 @@ use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Exception;
+use GuzzleHttp\Psr7\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Password;
 
 class UserController extends Controller
 {
+
     //
     public function login(Request $request)
     {
@@ -57,26 +59,44 @@ class UserController extends Controller
 
     public function register(Request $request)
     {
+        // dd($request->all());
         try {
-            //TODO: Validate Request
-            $request->validate([
-                'name' => ['required', 'string', 'max:255'],
+            //Validate Request
+            $request->validate(['name' => ['required', 'string', 'max:255'],
                 'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-                'password' => ['required', 'string', new Password] 
+                'password' => ['required', 'string'] 
             ]);
             
-            // TODO: Create User
+            // Create User
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
             ]);
 
-            // TODO: Create Token
+            // Create Token
+            $tokenResult = $user->createToken('authToken')->plainTextToken;
 
             // Return Response
+            return ResponseFormatter::success([
+                'access_token' => $tokenResult,
+                'token_type' => 'Bearer',
+                'user' => $user
+            ], 'Register Success');
         } catch (Exception $exception) {
             //throw $th;
+            return ResponseFormatter::error([
+                'message' => 'Something went wrong',
+                'error' => $exception->getMessage()
+            ], '500');
         }
+    }
+
+    public function logout(Request $request){
+        $token = $request->user()->currentAccessToken()->delete();
+        return ResponseFormatter::success($token, 'Token Revoked');
+    }
+    public function fetch(Request $request){
+        return ResponseFormatter::success($request->user(), 'Data profile user berhasil');
     }
 }
