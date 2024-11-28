@@ -17,14 +17,12 @@ use Illuminate\Support\Facades\Route;
 */
  
 
-Route::get('/company', [CompanyController::class, 'all']);
-Route::get('all', [UserController::class, 'fetchAll']);
+Route::get('company', [CompanyController::class, 'all']);
+Route::post('company', [CompanyController::class, 'create'])->middleware('auth:sanctum');
 
 
+// Auth
 Route::post('/login', [UserController::class, 'login']);
-
 Route::post('register', [UserController::class, 'register']);
-
 Route::post("logout", [UserController::class, 'logout'])-> middleware('auth:sanctum');
-
 Route::get('user', [UserController::class, 'fetch']) -> middleware('auth:sanctum');
