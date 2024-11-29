@@ -15,14 +15,23 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
- 
 
-Route::get('company', [CompanyController::class, 'all']);
-Route::post('company', [CompanyController::class, 'create'])->middleware('auth:sanctum');
 
+// Company API
+Route::prefix('company')->middleware('auth:sanctum')->name('company.')->group(function () {
+    Route::get('', [CompanyController::class, 'fetch'])->name('fetch');
+    Route::post('', [CompanyController::class, 'create'])->name('create');
+    Route::put('update/{id}', [CompanyController::class, 'update'])->name('update');
+});
 
 // Auth
-Route::post('/login', [UserController::class, 'login']);
-Route::post('register', [UserController::class, 'register']);
-Route::post("logout", [UserController::class, 'logout'])-> middleware('auth:sanctum');
-Route::get('user', [UserController::class, 'fetch']) -> middleware('auth:sanctum');
+
+Route::name('auth.')->group(function () {
+    Route::post('/login', [UserController::class, 'login'])->name('login');
+    Route::post('register', [UserController::class, 'register'])->name('register');
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('logout', [UserController::class, 'logout'])->name('logout');
+        Route::get('user', [UserController::class, 'fetch'])->name('fetch');
+    });
+});
