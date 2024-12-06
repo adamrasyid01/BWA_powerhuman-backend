@@ -16,32 +16,40 @@ use Illuminate\Support\Facades\Auth;
 class CompanyController extends Controller
 {
     //
-    public function all(Request $request){
+    public function fetch(Request $request)
+    {
 
         // Filter
         $id = $request->input('id');
         $name = $request->input('name');
         $limit = $request->input('limit', 10);
-      
-        // powerhuman.com/api/companies?id=1&limit=10
-        if($id){
-            $company = Company::with(['users'])->find($id);
 
-            if($company){
+        $companyQuery = Company::with(['users'])->whereHas('users', function ($query) {
+            $query->where('user_id', Auth::user()->id);
+        });
+
+        // powerhuman.com/api/companies?id=1&limit=10
+        // Single Data
+        if ($id) {
+            $company = $companyQuery->find($id);
+
+            if ($company) {
                 return ResponseFormatter::success($company, 'Data company berhasil diambil');
             }
-            return ResponseFormatter::error('Data company tidak ada',404);
+            return ResponseFormatter::error('Data company tidak ada', 404);
         }
-        $company= Company::with(['users']);
+        // $company = Company::with(['users']);
+        // Get Multiple Data
+        $companies = $companyQuery;
 
         // Filter by name 
-        if($name){
-            $company->where('name','like','%'.$name.'%');
+        if ($name) {
+            $companies->where('name', 'like', '%' . $name . '%');
         }
         return ResponseFormatter::success(
-            $company->paginate($limit),
+            $companies->paginate($limit),
             'Data list company berhasil diambil'
-        );  
+        );
     }
 
     public function create(CreateCompanyRequest $request)
@@ -66,7 +74,7 @@ class CompanyController extends Controller
             }
 
             // Attach company to user
-            $user = User::find(Auth ::user()->id);
+            $user = User::find(Auth::user()->id);
             $user->companies()->attach($company->id);
 
             $company->load('users');
@@ -99,7 +107,7 @@ class CompanyController extends Controller
             // Update Company
             $company->update([
                 'name' => $request->name,
-                'logo' => $path
+                'logo' => isset($path) ? $path : $company->logo,
             ]);
             return ResponseFormatter::success($company, 'Company berhasil diupdate');
         } catch (Exception $e) {
